@@ -6,14 +6,17 @@ import json
 from pprint import pprint as pp
 
 
-def git_repos(key, name):
+def git_repos(name, key='xxxxxxxxxxxxxxxxxxxxx'):
 
     """****************************************************
  usage: ./git-create.py <repo name> <apikey>
 
  <repo name>: Name of the Repository to be created
 
- <apikey>   : Api key generated from Git account
+ <apikey> OPTIONAL: Api key generated from Git account
+
+ One line command to delete repo (Admin Rights required):
+ curl -XDELETE -H 'Authorization: token <your api toke>' "https://api.github.com/repos/<username>/<repository name>"
 ****************************************************"""
 
     api_url_user = 'https://api.github.com/user/'
@@ -28,7 +31,9 @@ def git_repos(key, name):
 
     if resp.status_code == 201:
         out = json.loads(resp.content.decode('utf-8'))
-        pp('The repo --> {0} is successfully created & the clone url is --> {1}'.format(out['name'], out['git_url']), indent=4)
+        print('The repo --> {0} is successfully created \n'
+              'The Clone ssh url is --> {1} \n'
+              'The Clone HTTP url is --> {2}'.format(out['name'], out['ssh_url'], out['svn_url']))
     else:
         response = json.loads(resp.content.decode('utf-8'))
         raise ValueError("[?] Unexpected Response: [HTTP {0}]: Content: {1}".format(resp.status_code,
@@ -39,15 +44,21 @@ def git_repos(key, name):
 
 if __name__ == '__main__':
 
-    if len(sys.argv) != 3:
+    if len(sys.argv) < 2:
         print(git_repos.__doc__)
         raise SyntaxError('Missing Argument')
         sys.exit()
-    elif sys.argv[1] is None or sys.argv[2] is None:
+    elif len(sys.argv) == 2:
+        pp(sys.argv)
+        repo_name = sys.argv[1]
+        git_repos(repo_name)
+        sys.exit()
+    elif len(sys.argv) == 3:
+        pp(sys.argv)
+        repo_name = sys.argv[1]
+        key = sys.argv[2]
+        git_repos(repo_name, key)
+    else:
         pp(git_repos.__doc__)
         raise SyntaxError('Incomplete or incorrect argument given as input')
         sys.exit()
-    else:
-        api_key = sys.argv[1]
-        repo_name = sys.argv[2]
-        git_repos(repo_name, api_key)
